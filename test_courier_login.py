@@ -18,12 +18,19 @@ class TestCourierLogin:
     @allure.description("Проверка ошибки при отсутствии логина или пароля")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.parametrize("missing_field", ["login", "password"])
-    def test_login_missing_field(self, missing_field, new_courier):
-        login, password, _ = new_courier
+    def test_login_missing_field(self, missing_field):
+        """Используем отдельный курьер для каждого параметра, чтобы избежать конфликта фикстур"""
+        courier = register_new_courier_and_return_login_password()
+        assert courier, "Не удалось создать курьера для теста"
+
+        login, password, _ = courier
         payload = {"login": login, "password": password}
-        del payload[missing_field]
+
+        if missing_field in payload:
+            del payload[missing_field]
 
         response = requests.post(f"{BASE_URL}/courier/login", json=payload)
+
         assert response.status_code == 400
         assert "Недостаточно данных" in response.json().get("message", "")
 

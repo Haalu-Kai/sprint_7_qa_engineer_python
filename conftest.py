@@ -4,21 +4,19 @@ from helpers import register_new_courier_and_return_login_password
 
 @pytest.fixture
 def new_courier():
-    """Фикстура создаёт нового курьера и возвращает [login, password, firstName].
-    После теста можно добавить удаление, если захотим."""
+    """Создаёт нового курьера для тестов"""
     courier = register_new_courier_and_return_login_password()
-    assert courier, "Не удалось создать курьера для теста"
+    assert courier, "Не удалось создать курьера"
     yield courier
 
 
 @pytest.fixture
 def authorized_courier(new_courier):
-    """Возвращает id авторизованного курьера + его логин/пароль"""
+    """Авторизует курьера и возвращает его id + данные"""
     login, password, _ = new_courier
     response = requests.post(
         "https://qa-scooter.praktikum-services.ru/api/v1/courier/login",
         json={"login": login, "password": password}
     )
     assert response.status_code == 200
-    courier_id = response.json()["id"]
-    return {"id": courier_id, "login": login, "password": password}
+    return {"id": response.json()["id"], "login": login, "password": password}

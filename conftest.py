@@ -1,4 +1,5 @@
 import pytest
+import requests
 from helpers import register_new_courier_and_return_login_password
 
 

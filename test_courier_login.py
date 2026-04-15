@@ -1,6 +1,7 @@
 import requests
 import pytest
 import allure
+from helpers import register_new_courier_and_return_login_password
 from data import BASE_URL
 
 
@@ -19,7 +20,6 @@ class TestCourierLogin:
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.parametrize("missing_field", ["login", "password"])
     def test_login_missing_field(self, missing_field):
-        """Используем отдельный курьер для каждого параметра, чтобы избежать конфликта фикстур"""
         courier = register_new_courier_and_return_login_password()
         assert courier, "Не удалось создать курьера для теста"
 

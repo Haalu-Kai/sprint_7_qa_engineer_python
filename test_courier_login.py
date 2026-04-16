@@ -10,24 +10,22 @@ from data import BASE_URL
 class TestCourierLogin:
 
     @allure.title("Курьер может успешно авторизоваться")
-    @allure.description("Проверка успешной авторизации существующего курьера")
+    @allure.description("Проверка успешной авторизации")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_courier_can_login(self, authorized_courier):
         assert authorized_courier["id"] > 0
 
     @allure.title("Авторизация без обязательного поля")
-    @allure.description("Проверка ошибки при отсутствии логина или пароля")
+    @allure.description("Без логина или пароля должна возвращаться ошибка 400")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.parametrize("missing_field", ["login", "password"])
     def test_login_missing_field(self, missing_field):
         courier = register_new_courier_and_return_login_password()
-        assert courier, "Не удалось создать курьера для теста"
+        assert courier
 
         login, password, _ = courier
         payload = {"login": login, "password": password}
-
-        if missing_field in payload:
-            del payload[missing_field]
+        del payload[missing_field]
 
         response = requests.post(f"{BASE_URL}/courier/login", json=payload)
 
@@ -35,7 +33,7 @@ class TestCourierLogin:
         assert "Недостаточно данных" in response.json().get("message", "")
 
     @allure.title("Ошибка при неверном пароле")
-    @allure.description("Проверка возврата 404 при неправильном пароле")
+    @allure.description("При неправильном пароле должен возвращаться 404")
     @allure.severity(allure.severity_level.NORMAL)
     def test_login_wrong_password(self, new_courier):
         login, _, _ = new_courier
@@ -47,7 +45,7 @@ class TestCourierLogin:
         assert "Учетная запись не найдена" in response.json().get("message", "")
 
     @allure.title("Авторизация несуществующего пользователя")
-    @allure.description("Проверка ошибки при попытке залогиниться под несуществующим логином")
+    @allure.description("При попытке логина под несуществующим пользователем — 404")
     @allure.severity(allure.severity_level.NORMAL)
     def test_login_nonexistent_user(self):
         response = requests.post(
@@ -58,7 +56,7 @@ class TestCourierLogin:
         assert "Учетная запись не найдена" in response.json().get("message", "")
 
     @allure.title("Успешная авторизация возвращает id")
-    @allure.description("Проверка, что в ответе приходит идентификатор курьера")
+    @allure.description("В ответе должен приходить id курьера")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_login_success_returns_id(self, authorized_courier):
         assert "id" in authorized_courier
